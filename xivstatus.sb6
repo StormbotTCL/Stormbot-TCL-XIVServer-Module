@@ -1,0 +1,825 @@
+# Final Fantasy XIV Server Status
+#
+# Author: Demonicpagan
+# Created: 8/19/2013
+# Last Updated: 8/19/2013
+#
+# Description: Poll the Lodestone for the current server status
+# Change Log:
+# Please refer to http://github.com/demonicpagan/Stormbot-TCL-XIVServer-Module for changes made
+
+SB:command add XIVSTATUS 1 -none 14 XIV
+SB:abbr add XIVSTATUS 14 14SERVER 14STATUS
+SB:register variable global XIVSTATUS:*
+sbd:set xivstatus:author "Dustin Lennon (demonicpagan@gmail.com)"
+
+namespace eval frontier {
+	variable gateway_status_url "http://frontier.ffxiv.com/worldStatus/gate_status.json"
+	variable current_status_url "http://frontier.ffxiv.com/worldStatus/current_status.json"
+
+	# timeout for http requests (ms)
+	variable timeout 60000
+}
+
+proc frontier:query {url} {
+	set token [http::geturl $url -timeout $frontier::timeout]
+	set data [http::data $token]
+	set ncode [http::ncode $token]
+	http::cleanup $token
+
+	return $data
+}
+
+proc SB:proc_xivstatus {nick host handle chan arg} {
+	SB:setvariables
+
+	# Help information
+	if [string eq -nocase HELP $1] {
+		printh $nick "\002\037XIV SERVER STATUS:\037\002"
+		printh $nick "Syntax: $::botnick XIVSTATUS <LOBBY|SERVER NAME> - Check the status of the lobby or server of interest"
+		printh $nick "Syntax: $::botnick XIVSTATUS <EUROPE|NALEGACY|JPLEGACY|EULEGACY|JAPAN|NA> - List the status of group of servers"
+		return 0
+	}
+
+	if ![sbd:nozero @XIVSTATUS:PACKAGES_CHECKED] {
+		lassign [xivstatus:check_packages] a b
+		if [notempty b] { printh $nick "\[XIVSTATUS\] Unable to run command (missing packages): [ajl $b]" ; return 0 }
+	}
+
+	set result [xivstatus:getdata $frontier::current_status_url]
+	set server []
+	set status []
+
+	foreach {i j} $result {
+		lappend server $i
+		lappend status $j
+	}
+
+	if {[lsearch -nocase $server $1] != -1} {
+		set req [sts $1]
+
+		if [string eq -nocase $req $1] {
+			set pos [lsearch -index 0 $server $req]
+			set info [lindex $status $pos]
+
+			if {($info == 3) || ($info == 0)} {
+				set msg "[color 4]Down[color]"
+			} elseif {($info == 2)} {
+				set msg "[color 7]Partially Down[color]"
+			} elseif {($info == 1)} {
+				set msg "[color 3]Up[color]"
+			} else {
+				set msg "[color 4]Unknown[color]"
+			}
+
+			print $nick "The $req server is currently $msg"
+			return 0
+		}
+	}
+
+	switch -glob -- $l1 {
+		test {
+			print $nick "\[${u0}\] Testing functions needed for $u0 to work:"
+			lassign [xivstatus:check_packages] ok bad
+			if [isempty bad] {
+				print $nick "\[${u0}\] All packages are available: [ajl $ok]"
+			} {
+				print $nick "\[${u0}\] Missing packages: [ajl $bad] ($u0 can't function without them!)"
+			}
+			return 0
+		}
+
+		lobby {
+			if {[catch {xivstatus:getdata $frontier::gateway_status_url} result]} {
+				print $nick "Unable to retieve information - $result"
+				return 0
+			}
+
+			set lobby [dict get $result status]
+
+			if {($lobby == 3) || ($lobby == 0)} {
+				print $nick "The lobby is currently [color 4]down[color]. Please check back later."
+				return 0
+			} elseif {($lobby == 2)} {
+				print $nick "The lobby is currently [color 7]partially down[color]. You might be able to log in."
+				return 0
+			} elseif {($lobby == 1)} {
+				print $nick "The lobby is currently [color 3]up[color]. Log in and enjoy playing!"
+				return 0
+			} else {
+				print $nick "There is a server timeout issue... sorry."
+				return 0
+			}
+
+			return 0
+		}
+
+		europe - eu {
+			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
+				print $nick "Unable to retieve information - $result"
+				return 0
+			}
+
+			set server [list $result]
+			foreach value $server {
+				set cerb [dict get $value Cerberus]
+				set moogle [dict get $value Moogle]
+				set odin [dict get $value Odin]
+				set phoenix [dict get $value Phoenix]
+				set shiva [dict get $value Shiva]
+			}
+
+			# Start Cerberus server status
+			if {($cerb == 3) || ($cerb == 0)} {
+				set cerb "[color 4]Down[color]"
+			} elseif {($cerb == 2)} {
+				set cerb "[color 7]Partially Down[color]"
+			} elseif {($cerb == 1)} {
+				set cerb "[color 3]Up[color]"
+			} else {
+				set cerb "[color 4]Unknown[color]"
+			}
+
+			# Start Moogle server status
+			if {($moogle == 3) || ($moogle == 0)} {
+				set moogle "[color 4]Down[color]"
+			} elseif {($moogle == 2)} {
+				set moogle "[color 7]Partially Down[color]"
+			} elseif {($moogle == 1)} {
+				set moogle "[color 3]Up[color]"
+			} else {
+				set moogle "[color 4]Unknown[color]"
+			}
+
+			# Start Odin server status
+			if {($odin == 3) || ($odin == 0)} {
+				set odin "[color 4]Down[color]"
+			} elseif {($odin == 2)} {
+				set odin "[color 7]Partially Down[color]"
+			} elseif {($odin == 1)} {
+				set odin "[color 3]Up[color]"
+			} else {
+				set odin "[color 4]Unknown[color]"
+			}
+
+			# Start Phoenix server status
+			if {($phoenix == 3) || ($phoenix == 0)} {
+				set phoenix "[color 4]Down[color]"
+			} elseif {($phoenix == 2)} {
+				set phoenix "[color 7]Partially Down[color]"
+			} elseif {($phoenix == 1)} {
+				set phoenix "[color 3]Up[color]"
+			} else {
+				set phoenix "[color 4]Unknown[color]"
+			}
+
+			# Start Shiva server status
+			if {($shiva == 3) || ($shiva == 0)} {
+				set shiva "[color 4]Down[color]"
+			} elseif {($shiva == 2)} {
+				set shiva "[color 7]Partially Down[color]"
+			} elseif {($shiva == 1)} {
+				set shiva "[color 3]Up[color]"
+			} else {
+				set shiva "[color 4]Unknown[color]"
+			}
+
+			print $nick "\002European Server Status\002"
+			print $nick "Cerberus: $cerb - Moogle: $moogle - Odin: $odin - Phoenix: $phoenix - Shiva: $shiva"
+
+			return 0
+		}
+
+		eulegacy - eul {
+			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
+				print $nick "Unable to retieve information - $result"
+				return 0
+			}
+
+			set server [list $result]
+			foreach value $server {
+				set rag [dict get $value Ragnarok]
+			}
+
+			# Start Ragnarok server status
+			if {($rag == 3) || ($rag == 0)} {
+				set rag "[color 4]Down[color]"
+			} elseif {($rag == 2)} {
+				set rag "[color 7]Partially Down[color]"
+			} elseif {($rag == 1)} {
+				set rag "[color 3]Up[color]"
+			} else {
+				set rag "[color 4]Unknown[color]"
+			}
+
+			print $nick "\002Legacy European Server Status\002"
+			print $nick "Ragnarok: $rag"
+			return 0
+		}
+
+		japan - jp {
+			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
+				print $nick "Unable to retieve information - $result"
+				return 0
+			}
+
+			set server [list $result]
+			foreach value $server {
+				set alex [dict get $value Alexander]
+				set anima [dict get $value Anima]
+				set atomos [dict get $value Atomos]
+				set baha [dict get $value Bahamut]
+				set carby [dict get $value Carbuncle]
+				set choco [dict get $value Chocobo]
+				set fenrir [dict get $value Fenrir]
+				set garuda [dict get $value Garuda]
+				set hell [dict get $value Hades]
+				set ifrit [dict get $value Ifrit]
+				set ixy [dict get $value Ixion]
+				set kujata [dict get $value Kujata]
+				set mandy [dict get $value Mandragora]
+				set ramuh [dict get $value Ramuh]
+				set tiamat [dict get $value Tiamat]
+				set titan [dict get $value Titan]
+				set tonberry [dict get $value Tonberry]
+				set typhon [dict get $value Typhon]
+				set ultima [dict get $value Ultima]
+				set valefor [dict get $value Valefor]
+			}
+
+			# Start Alexander server status
+			if {($alex == 3) || ($alex == 0)} {
+				set alex "[color 4]Down[color]"
+			} elseif {($alex == 2)} {
+				set alex "[color 7]Partially Down[color]"
+			} elseif {($alex == 1)} {
+				set alex "[color 3]Up[color]"
+			} else {
+				set alex "[color 4]Unknown[color]"
+			}
+
+			# Start Anima server status
+			if {($anima == 3) || ($anima == 0)} {
+				set anima "[color 4]Down[color]"
+			} elseif {($anima == 2)} {
+				set anima "[color 7]Partially Down[color]"
+			} elseif {($anima == 1)} {
+				set anima "[color 3]Up[color]"
+			} else {
+				set anima "[color 4]Unknown[color]"
+			}
+
+			# Start Atomos server status
+			if {($atomos == 3) || ($atomos == 0)} {
+				set atomos "[color 4]Down[color]"
+			} elseif {($atomos == 2)} {
+				set atomos "[color 7]Partially Down[color]"
+			} elseif {($atomos == 1)} {
+				set atomos "[color 3]Up[color]"
+			} else {
+				set atomos "[color 4]Unknown[color]"
+			}
+
+			# Start Bahamut server status
+			if {($baha == 3) || ($baha == 0)} {
+				set baha "[color 4]Down[color]"
+			} elseif {($baha == 2)} {
+				set baha "[color 7]Partially Down[color]"
+			} elseif {($baha == 1)} {
+				set baha "[color 3]Up[color]"
+			} else {
+				set baha "[color 4]Unknown[color]"
+			}
+
+			# Start Carbuncle server status
+			if {($carby == 3) || ($carby == 0)} {
+				set carby "[color 4]Down[color]"
+			} elseif {($carby == 2)} {
+				set carby "[color 7]Partially Down[color]"
+			} elseif {($carby == 1)} {
+				set carby "[color 3]Up[color]"
+			} else {
+				set carby "[color 4]Unknown[color]"
+			}
+
+			# Start Chocobo server status
+			if {($choco == 3) || ($choco == 0)} {
+				set choco "[color 4]Down[color]"
+			} elseif {($choco == 2)} {
+				set choco "[color 7]Partially Down[color]"
+			} elseif {($choco == 1)} {
+				set choco "[color 3]Up[color]"
+			} else {
+				set choco "[color 4]Unknown[color]"
+			}
+
+			# Start Fenrir server status
+			if {($fenrir == 3) || ($fenrir == 0)} {
+				set fenrir "[color 4]Down[color]"
+			} elseif {($fenrir == 2)} {
+				set fenrir "[color 7]Partially Down[color]"
+			} elseif {($fenrir == 1)} {
+				set fenrir "[color 3]Up[color]"
+			} else {
+				set fenrir "[color 4]Unknown[color]"
+			}
+
+			# Start Garuda server status
+			if {($garuda == 3) || ($garuda == 0)} {
+				set garuda "[color 4]Down[color]"
+			} elseif {($garuda == 2)} {
+				set garuda "[color 7]Partially Down[color]"
+			} elseif {($garuda == 1)} {
+				set garuda "[color 3]Up[color]"
+			} else {
+				set garuda "[color 4]Unknown[color]"
+			}
+
+			# Start Hades server status
+			if {($hell == 3) || ($hell == 0)} {
+				set hell "[color 4]Down[color]"
+			} elseif {($hell == 2)} {
+				set hell "[color 7]Partially Down[color]"
+			} elseif {($hell == 1)} {
+				set hell "[color 3]Up[color]"
+			} else {
+				set hell "[color 4]Unknown[color]"
+			}
+
+			# Start Ifrit server status
+			if {($ifrit == 3) || ($ifrit == 0)} {
+				set ifrit "[color 4]Down[color]"
+			} elseif {($ifrit == 2)} {
+				set ifrit "[color 7]Partially Down[color]"
+			} elseif {($ifrit == 1)} {
+				set ifrit "[color 3]Up[color]"
+			} else {
+				set ifrit "[color 4]Unknown[color]"
+			}
+
+			# Start Ixion server status
+			if {($ixy == 3) || ($ixy == 0)} {
+				set ixy "[color 4]Down[color]"
+			} elseif {($ixy == 2)} {
+				set ixy "[color 7]Partially Down[color]"
+			} elseif {($ixy == 1)} {
+				set ixy "[color 3]Up[color]"
+			} else {
+				set ixy "[color 4]Unknown[color]"
+			}
+
+			# Start Kujata server status
+			if {($kujata == 3) || ($kujata == 0)} {
+				set kujata "[color 4]Down[color]"
+			} elseif {($kujata == 2)} {
+				set kujata "[color 7]Partially Down[color]"
+			} elseif {($kujata == 1)} {
+				set kujata "[color 3]Up[color]"
+			} else {
+				set kujata "[color 4]Unknown[color]"
+			}
+
+			# Start Mandragora server status
+			if {($mandy == 3) || ($mandy == 0)} {
+				set mandy "[color 4]Down[color]"
+			} elseif {($mandy == 2)} {
+				set mandy "[color 7]Partially Down[color]"
+			} elseif {($mandy == 1)} {
+				set mandy "[color 3]Up[color]"
+			} else {
+				set mandy "[color 4]Unknown[color]"
+			}
+
+			# Start Ramuh server status
+			if {($ramuh == 3) || ($ramuh == 0)} {
+				set ramuh "[color 4]Down[color]"
+			} elseif {($ramuh == 2)} {
+				set ramuh "[color 7]Partially Down[color]"
+			} elseif {($ramuh == 1)} {
+				set ramuh "[color 3]Up[color]"
+			} else {
+				set ramuh "[color 4]Unknown[color]"
+			}
+
+			# Start Tiamat server status
+			if {($tiamat == 3) || ($tiamat == 0)} {
+				set tiamat "[color 4]Down[color]"
+			} elseif {($tiamat == 2)} {
+				set tiamat "[color 7]Partially Down[color]"
+			} elseif {($tiamat == 1)} {
+				set tiamat "[color 3]Up[color]"
+			} else {
+				set tiamat "[color 4]Unknown[color]"
+			}
+
+			# Start Titan server status
+			if {($titan == 3) || ($titan == 0)} {
+				set titan "[color 4]Down[color]"
+			} elseif {($titan == 2)} {
+				set titan "[color 7]Partially Down[color]"
+			} elseif {($titan == 1)} {
+				set titan "[color 3]Up[color]"
+			} else {
+				set titan "[color 4]Unknown[color]"
+			}
+
+			# Start Tonberry server status
+			if {($tonberry == 3) || ($tonberry == 0)} {
+				set tonberry "[color 4]Down[color]"
+			} elseif {($tonberry == 2)} {
+				set tonberry "[color 7]Partially Down[color]"
+			} elseif {($tonberry == 1)} {
+				set tonberry "[color 3]Up[color]"
+			} else {
+				set tonberry "[color 4]Unknown[color]"
+			}
+
+			# Start Typhon server status
+			if {($typhon == 3) || ($typhon == 0)} {
+				set typhon "[color 4]Down[color]"
+			} elseif {($typhon == 2)} {
+				set typhon "[color 7]Partially Down[color]"
+			} elseif {($typhon == 1)} {
+				set typhon "[color 3]Up[color]"
+			} else {
+				set typhon "[color 4]Unknown[color]"
+			}
+
+			# Start Ultima server status
+			if {($ultima == 3) || ($ultima == 0)} {
+				set ultima "[color 4]Down[color]"
+			} elseif {($ultima == 2)} {
+				set ultima "[color 7]Partially Down[color]"
+			} elseif {($ultima == 1)} {
+				set ultima "[color 3]Up[color]"
+			} else {
+				set ultima "[color 4]Unknown[color]"
+			}
+
+			# Start Valefor server status
+			if {($valefor == 3) || ($valefor == 0)} {
+				set valefor "[color 4]Down[color]"
+			} elseif {($valefor == 2)} {
+				set valefor "[color 7]Partially Down[color]"
+			} elseif {($valefor == 1)} {
+				set valefor "[color 3]Up[color]"
+			} else {
+				set valefor "[color 4]Unknown[color]"
+			}
+
+			print $nick "\002Japan Server Status\002"
+			print $nick "Alexander: $alex - Anima: $anima - Atomos: $atomos - Bahamut: $baha - Carbuncle: $carby - Chocobo: $choco - Fenrir: $fenrir - Garuda: $garuda - Hades: $hell - Ifrit: $ifrit"
+			print $nick "Ixion: $ixy - Kujata: $kujata - Mandragora: $mandy - Ramuh: $ramuh - Tiamat: $tiamat - Titan: $titan - Tonberry: $tonberry - Typhon: $typhon - Ultima: $ultima - Valefor: $valefor"
+			return 0
+		}
+
+		jplegacy - jpl {
+			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
+				print $nick "Unable to retieve information - $result"
+				return 0
+			}
+
+			set server [list $result]
+			foreach value $server {
+				set aegis [dict get $value Aegis]
+				set durandal [dict get $value Durandal]
+				set gungnir [dict get $value Gungnir]
+				set masa [dict get $value Masamune]
+				set rid [dict get $value Ridill]
+			}
+
+			# Start Aegis server status
+			if {($aegis == 3) || ($aegis == 0)} {
+				set aegis "[color 4]Down[color]"
+			} elseif {($aegis == 2)} {
+				set aegis "[color 7]Partially Down[color]"
+			} elseif {($aegis == 1)} {
+				set aegis "[color 3]Up[color]"
+			} else {
+				set aegis "[color 4]Unknown[color]"
+			}
+
+			# Start Durandal server status
+			if {($durandal == 3) || ($durandal == 0)} {
+				set durandal "[color 4]Down[color]"
+			} elseif {($durandal == 2)} {
+				set durandal "[color 7]Partially Down[color]"
+			} elseif {($durandal == 1)} {
+				set durandal "[color 3]Up[color]"
+			} else {
+				set durandal "[color 4]Unknown[color]"
+			}
+
+			# Start Gungnir server status
+			if {($gungnir == 3) || ($gungnir == 0)} {
+				set gungnir "[color 4]Down[color]"
+			} elseif {($gungnir == 2)} {
+				set gungnir "[color 7]Partially Down[color]"
+			} elseif {($gungnir == 1)} {
+				set gungnir "[color 3]Up[color]"
+			} else {
+				set gungnir "[color 4]Unknown[color]"
+			}
+
+			# Start Masamune server status
+			if {($masa == 3) || ($masa == 0)} {
+				set masa "[color 4]Down[color]"
+			} elseif {($masa == 2)} {
+				set masa "[color 7]Partially Down[color]"
+			} elseif {($masa == 1)} {
+				set masa "[color 3]Up[color]"
+			} else {
+				set masa "[color 4]Unknown[color]"
+			}
+
+			# Start Ridill server status
+			if {($rid == 3) || ($rid == 0)} {
+				set rid "[color 4]Down[color]"
+			} elseif {($rid == 2)} {
+				set rid "[color 7]Partially Down[color]"
+			} elseif {($rid == 1)} {
+				set rid "[color 3]Up[color]"
+			} else {
+				set rid "[color 4]Unknown[color]"
+			}
+
+			print $nick "\002Legacy Japan Server Status\002"
+			print $nick "Aegis: $aegis - Durandal: $durandal - Gungnir: $gungnir - Masamune: $masa - Ridill: $rid"
+			return 0
+		}
+
+		na {
+			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
+				print $nick "Unable to retieve information - $result"
+				return 0
+			}
+
+			set server [list $result]
+			foreach value $server {
+				set adaman [dict get $value Adamantoise]
+				set behem [dict get $value Behemoth]
+				set cactuar [dict get $value Cactuar]
+				set coeurl [dict get $value Coeurl]
+				set diabolos [dict get $value Diabolos]
+				set exodus [dict get $value Exodus]
+				set faerie [dict get $value Faerie]
+				set gilg [dict get $value Gilgamesh]
+				set goblin [dict get $value Goblin]
+				set lamia [dict get $value Lamia]
+				set levy [dict get $value Leviathan]
+				set malboro [dict get $value Malboro]
+				set midg [dict get $value Midgardsormr]
+				set siren [dict get $value Siren]
+				set ultros [dict get $value Ultros]
+			}
+
+			# Start Adamantoise server status
+			if {($adaman == 3) || ($adaman == 0)} {
+				set adaman "[color 4]Down[color]"
+			} elseif {($adaman == 2)} {
+				set adaman "[color 7]Partially Down[color]"
+			} elseif {($adaman == 1)} {
+				set adaman "[color 3]Up[color]"
+			} else {
+				set adaman "[color 4]Unknown[color]"
+			}
+
+			# Start Behemoth server status
+			if {($behem == 3) || ($behem == 0)} {
+				set behem "[color 4]Down[color]"
+			} elseif {($behem == 2)} {
+				set behem "[color 7]Partially Down[color]"
+			} elseif {($behem == 1)} {
+				set behem "[color 3]Up[color]"
+			} else {
+				set behem "[color 4]Unknown[color]"
+			}
+
+			# Start Cactuar server status
+			if {($cactuar == 3) || ($cactuar == 0)} {
+				set cactuar "[color 4]Down[color]"
+			} elseif {($cactuar == 2)} {
+				set cactuar "[color 7]Partially Down[color]"
+			} elseif {($cactuar == 1)} {
+				set cactuar "[color 3]Up[color]"
+			} else {
+				set cactuar "[color 4]Unknown[color]"
+			}
+
+			# Start Coeurl server status
+			if {($coeurl == 3) || ($coeurl == 0)} {
+				set coeurl "[color 4]Down[color]"
+			} elseif {($coeurl == 2)} {
+				set coeurl "[color 7]Partially Down[color]"
+			} elseif {($coeurl == 1)} {
+				set coeurl "[color 3]Up[color]"
+			} else {
+				set coeurl "[color 4]Unknown[color]"
+			}
+
+			# Start Diabolos server status
+			if {($diabolos == 3) || ($diabolos == 0)} {
+				set diabolos "[color 4]Down[color]"
+			} elseif {($diabolos == 2)} {
+				set diabolos "[color 7]Partially Down[color]"
+			} elseif {($diabolos == 1)} {
+				set diabolos "[color 3]Up[color]"
+			} else {
+				set diabolos "[color 4]Unknown[color]"
+			}
+
+			# Start Exodus server status
+			if {($exodus == 3) || ($exodus == 0)} {
+				set exodus "[color 4]Down[color]"
+			} elseif {($exodus == 2)} {
+				set exodus "[color 7]Partially Down[color]"
+			} elseif {($exodus == 1)} {
+				set exodus "[color 3]Up[color]"
+			} else {
+				set exodus "[color 4]Unknown[color]"
+			}
+
+			# Start Faerie server status
+			if {($faerie == 3) || ($faerie == 0)} {
+				set faerie "[color 4]Down[color]"
+			} elseif {($faerie == 2)} {
+				set faerie "[color 7]Partially Down[color]"
+			} elseif {($faerie == 1)} {
+				set faerie "[color 3]Up[color]"
+			} else {
+				set faerie "[color 4]Unknown[color]"
+			}
+
+			# Start Gilgamesh server status
+			if {($gilg == 3) || ($gilg == 0)} {
+				set gilg "[color 4]Down[color]"
+			} elseif {($gilg == 2)} {
+				set gilg "[color 7]Partially Down[color]"
+			} elseif {($gilg == 1)} {
+				set gilg "[color 3]Up[color]"
+			} else {
+				set gilg "[color 4]Unknown[color]"
+			}
+
+			# Start Goblin server status
+			if {($goblin == 3) || ($goblin == 0)} {
+				set goblin "[color 4]Down[color]"
+			} elseif {($goblin == 2)} {
+				set goblin "[color 7]Partially Down[color]"
+			} elseif {($goblin == 1)} {
+				set goblin "[color 3]Up[color]"
+			} else {
+				set goblin "[color 4]Unknown[color]"
+			}
+
+			# Start Lamia server status
+			if {($lamia == 3) || ($lamia == 0)} {
+				set lamia "[color 4]Down[color]"
+			} elseif {($lamia == 2)} {
+				set lamia "[color 7]Partially Down[color]"
+			} elseif {($lamia == 1)} {
+				set lamia "[color 3]Up[color]"
+			} else {
+				set lamia "[color 4]Unknown[color]"
+			}
+
+			# Start Leviathan server status
+			if {($levy == 3) || ($levy == 0)} {
+				set levy "[color 4]Down[color]"
+			} elseif {($levy == 2)} {
+				set levy "[color 7]Partially Down[color]"
+			} elseif {($levy == 1)} {
+				set levy "[color 3]Up[color]"
+			} else {
+				set levy "[color 4]Unknown[color]"
+			}
+
+			# Start Malboro server status
+			if {($malboro == 3) || ($malboro == 0)} {
+				set malboro "[color 4]Down[color]"
+			} elseif {($malboro == 2)} {
+				set malboro "[color 7]Partially Down[color]"
+			} elseif {($malboro == 1)} {
+				set malboro "[color 3]Up[color]"
+			} else {
+				set malboro "[color 4]Unknown[color]"
+			}
+
+			# Start Midgardsormr server status
+			if {($midg == 3) || ($midg == 0)} {
+				set midg "[color 4]Down[color]"
+			} elseif {($midg == 2)} {
+				set midg "[color 7]Partially Down[color]"
+			} elseif {($midg == 1)} {
+				set midg "[color 3]Up[color]"
+			} else {
+				set midg "[color 4]Unknown[color]"
+			}
+
+			# Start Siren server status
+			if {($siren == 3) || ($siren == 0)} {
+				set siren "[color 4]Down[color]"
+			} elseif {($siren == 2)} {
+				set siren "[color 7]Partially Down[color]"
+			} elseif {($siren == 1)} {
+				set siren "[color 3]Up[color]"
+			} else {
+				set siren "[color 4]Unknown[color]"
+			}
+
+			# Start Ultros server status
+			if {($ultros == 3) || ($ultros == 0)} {
+				set ultros "[color 4]Down[color]"
+			} elseif {($ultros == 2)} {
+				set ultros "[color 7]Partially Down[color]"
+			} elseif {($ultros == 1)} {
+				set ultros "[color 3]Up[color]"
+			} else {
+				set ultros "[color 4]Unknown[color]"
+			}
+
+			print $nick "\002North American Server Status\002"
+			print $nick "Adamantoise: $adaman - Behemoth: $behem - Cactuar: $cactuar - Coeurl: $coeurl - Diabolos: $diabolos - Exodus: $exodus - Faerie: $faerie - Gilgamesh: $gilg"
+			print $nick "Goblin: $goblin - Lamia: $lamia - Leviathan: $levy - Malboro: $malboro - Midgardsormr: $midg - Siren: $siren - Ultros: $ultros"
+			return 0
+		}
+
+		nalegacy - nal {
+			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
+				print $nick "Unable to retieve information - $result"
+				return 0
+			}
+
+			set server [list $result]
+			foreach value $server {
+				set balmung [dict get $value Balmung]
+				set excal [dict get $value Excalibur]
+				set hyper [dict get $value Hyperion]
+				set sarg [dict get $value Sargatanas]
+			}
+
+			# Start Balmung server status
+			if {($balmung == 3) || ($balmung == 0)} {
+				set balmung "[color 4]Down[color]"
+			} elseif {($balmung == 2)} {
+				set balmung "[color 7]Partially Down[color]"
+			} elseif {($balmung == 1)} {
+				set balmung "[color 3]Up[color]"
+			} else {
+				set balmung "[color 4]Unknown[color]"
+			}
+
+			# Start Excalibur server status
+			if {($excal == 3) || ($excal == 0)} {
+				set excal "[color 4]Down[color]"
+			} elseif {($excal == 2)} {
+				set excal "[color 7]Partially Down[color]"
+			} elseif {($excal == 1)} {
+				set excal "[color 3]Up[color]"
+			} else {
+				set excal "[color 4]Unknown[color]"
+			}
+
+			# Start Hyperion server status
+			if {($hyper == 3) || ($hyper == 0)} {
+				set hyper "[color 4]Down[color]"
+			} elseif {($hyper == 2)} {
+				set hyper "[color 7]Partially Down[color]"
+			} elseif {($hyper == 1)} {
+				set hyper "[color 3]Up[color]"
+			} else {
+				set hyper "[color 4]Unknown[color]"
+			}
+
+			# Start Sargatanas server status
+			if {($sarg == 3) || ($sarg == 0)} {
+				set sarg "[color 4]Down[color]"
+			} elseif {($sarg == 2)} {
+				set sarg "[color 7]Partially Down[color]"
+			} elseif {($sarg == 1)} {
+				set sarg "[color 3]Up[color]"
+			} else {
+				set sarg "[color 4]Unknown[color]"
+			}
+
+			print $nick "\002Legacy North American Server Status\002"
+			print $nick "Balmung: $balmung - Excalibur: $excal - Hyperion: $hyper - Sargatanas: $sarg"
+			return 0
+		}
+	}
+}
+
+proc xivstatus:getdata {url} {
+	set data [frontier:query $url]
+	return [json::json2dict $data]
+}
+
+proc xivstatus:check_packages args {
+	# Make sure the require packages are installed
+	empty ok bad
+	foreach a [list json http] {
+		set error [ catch { package require $a } ]
+		if $error { lappend bad $a } { lappend ok $a }
+	}
+	return [list $ok $bad]
+}
