@@ -127,6 +127,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set odin [dict get $value Odin]
 				set phoenix [dict get $value Phoenix]
 				set shiva [dict get $value Shiva]
+				set lich [dict get $value Lich]
 			}
 
 			# Start Cerberus server status
@@ -184,8 +185,19 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set shiva "[color 4]Unknown[color]"
 			}
 
+			# Start Lich server status
+			if {($lich == 3) || ($lich == 0)} {
+				set lich "[color 4]Down[color]"
+			} elseif {($lich == 2)} {
+				set lich "[color 7]Partially Down[color]"
+			} elseif {($lich == 1)} {
+				set lich "[color 3]Up[color]"
+			} else {
+				set lich "[color 4]Unknown[color]"
+			}
+
 			print $nick "\002European Server Status\002"
-			print $nick "Cerberus: $cerb - Moogle: $moogle - Odin: $odin - Phoenix: $phoenix - Shiva: $shiva"
+			print $nick "Cerberus: $cerb - Moogle: $moogle - Odin: $odin - Phoenix: $phoenix - Shiva: $shiva - Lich: $lich"
 
 			return 0
 		}
@@ -245,6 +257,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set typhon [dict get $value Typhon]
 				set ultima [dict get $value Ultima]
 				set valefor [dict get $value Valefor]
+				set pandy [dict get $value Pandemonium]
 			}
 
 			# Start Alexander server status
@@ -467,9 +480,20 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set valefor "[color 4]Unknown[color]"
 			}
 
+			# Start Pandemonium server status
+			if {($pandy == 3) || ($pandy == 0)} {
+				set pandy "[color 4]Down[color]"
+			} elseif {($pandy == 2)} {
+				set pandy "[color 7]Partially Down[color]"
+			} elseif {($pandy == 1)} {
+				set pandy "[color 3]Up[color]"
+			} else {
+				set pandy "[color 4]Unknown[color]"
+			}
+
 			print $nick "\002Japan Server Status\002"
 			print $nick "Alexander: $alex - Anima: $anima - Atomos: $atomos - Bahamut: $baha - Carbuncle: $carby - Chocobo: $choco - Fenrir: $fenrir - Garuda: $garuda - Hades: $hell - Ifrit: $ifrit"
-			print $nick "Ixion: $ixy - Kujata: $kujata - Mandragora: $mandy - Ramuh: $ramuh - Tiamat: $tiamat - Titan: $titan - Tonberry: $tonberry - Typhon: $typhon - Ultima: $ultima - Valefor: $valefor"
+			print $nick "Ixion: $ixy - Kujata: $kujata - Mandragora: $mandy - Ramuh: $ramuh - Tiamat: $tiamat - Titan: $titan - Tonberry: $tonberry - Typhon: $typhon - Ultima: $ultima - Valefor: $valefor - Pandemonium: $pandy"
 			return 0
 		}
 
@@ -571,6 +595,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set midg [dict get $value Midgardsormr]
 				set siren [dict get $value Siren]
 				set ultros [dict get $value Ultros]
+				set famfrit [dict get $value Famfrit]
 			}
 
 			# Start Adamantoise server status
@@ -738,9 +763,20 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set ultros "[color 4]Unknown[color]"
 			}
 
+			# Start Famfrit server status
+			if {($famfrit == 3) || ($famfrit == 0)} {
+				set famfrit "[color 4]Down[color]"
+			} elseif {($famfrit == 2)} {
+				set famfrit "[color 7]Partially Down[color]"
+			} elseif {($famfrit == 1)} {
+				set famfrit "[color 3]Up[color]"
+			} else {
+				set famfrit "[color 4]Unknown[color]"
+			}
+
 			print $nick "\002North American Server Status\002"
 			print $nick "Adamantoise: $adaman - Behemoth: $behem - Cactuar: $cactuar - Coeurl: $coeurl - Diabolos: $diabolos - Exodus: $exodus - Faerie: $faerie - Gilgamesh: $gilg"
-			print $nick "Goblin: $goblin - Lamia: $lamia - Leviathan: $levy - Malboro: $malboro - Midgardsormr: $midg - Siren: $siren - Ultros: $ultros"
+			print $nick "Goblin: $goblin - Lamia: $lamia - Leviathan: $levy - Malboro: $malboro - Midgardsormr: $midg - Siren: $siren - Ultros: $ultros - Famfrit: $famfrit"
 			return 0
 		}
 
