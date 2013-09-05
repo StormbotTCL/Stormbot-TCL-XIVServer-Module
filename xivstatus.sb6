@@ -257,7 +257,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set typhon [dict get $value Typhon]
 				set ultima [dict get $value Ultima]
 				set valefor [dict get $value Valefor]
-				set pandy [dict get $value Pandemonium]
+				set pandy [dict get $value Pandaemonium]
 			}
 
 			# Start Alexander server status
@@ -480,7 +480,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set valefor "[color 4]Unknown[color]"
 			}
 
-			# Start Pandemonium server status
+			# Start Pandaemonium server status
 			if {($pandy == 3) || ($pandy == 0)} {
 				set pandy "[color 4]Down[color]"
 			} elseif {($pandy == 2)} {
