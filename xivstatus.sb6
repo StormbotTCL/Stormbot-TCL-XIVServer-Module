@@ -240,7 +240,9 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set alex [dict get $value Alexander]
 				set anima [dict get $value Anima]
 				set atomos [dict get $value Atomos]
+				set asura [dict get $value Asura]
 				set baha [dict get $value Bahamut]
+				set belias [dict get $value Belias]
 				set carby [dict get $value Carbuncle]
 				set choco [dict get $value Chocobo]
 				set fenrir [dict get $value Fenrir]
@@ -256,8 +258,11 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set tonberry [dict get $value Tonberry]
 				set typhon [dict get $value Typhon]
 				set ultima [dict get $value Ultima]
+				set unicorn [dict get $value Unicorn]
 				set valefor [dict get $value Valefor]
 				set pandy [dict get $value Pandaemonium]
+				set yojimbo [dict get $value Yojimbo]
+				set zeromus [dict get $value Zeromus]
 			}
 
 			# Start Alexander server status
@@ -293,6 +298,17 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set atomos "[color 4]Unknown[color]"
 			}
 
+			# Start Asura server status
+			if {($asura == 3) || ($asura == 0)} {
+				set asura "[color 4]Down[color]"
+			} elseif {($asura == 2)} {
+				set asura "[color 7]Partially Down[color]"
+			} elseif {($asura == 1)} {
+				set asura "[color 3]Up[color]"
+			} else {
+				set asura "[color 4]Unknown[color]"
+			}
+
 			# Start Bahamut server status
 			if {($baha == 3) || ($baha == 0)} {
 				set baha "[color 4]Down[color]"
@@ -302,6 +318,17 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set baha "[color 3]Up[color]"
 			} else {
 				set baha "[color 4]Unknown[color]"
+			}
+
+			# Start Belias server status
+			if {($belias == 3) || ($belias == 0)} {
+				set belias "[color 4]Down[color]"
+			} elseif {($belias == 2)} {
+				set belias "[color 7]Partially Down[color]"
+			} elseif {($belias == 1)} {
+				set belias "[color 3]Up[color]"
+			} else {
+				set belias "[color 4]Unknown[color]"
 			}
 
 			# Start Carbuncle server status
@@ -480,6 +507,17 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set valefor "[color 4]Unknown[color]"
 			}
 
+			# Start Unicorn server status
+			if {($unicorn == 3) || ($unicorn == 0)} {
+				set unicorn "[color 4]Down[color]"
+			} elseif {($unicorn == 2)} {
+				set unicorn "[color 7]Partially Down[color]"
+			} elseif {($unicorn == 1)} {
+				set unicorn "[color 3]Up[color]"
+			} else {
+				set unicorn "[color 4]Unknown[color]"
+			}
+
 			# Start Pandaemonium server status
 			if {($pandy == 3) || ($pandy == 0)} {
 				set pandy "[color 4]Down[color]"
@@ -491,9 +529,32 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set pandy "[color 4]Unknown[color]"
 			}
 
+			# Start Yojimbo server status
+			if {($yojimbo == 3) || ($yojimbo == 0)} {
+				set yojimbo "[color 4]Down[color]"
+			} elseif {($yojimbo == 2)} {
+				set yojimbo "[color 7]Partially Down[color]"
+			} elseif {($yojimbo == 1)} {
+				set yojimbo "[color 3]Up[color]"
+			} else {
+				set yojimbo "[color 4]Unknown[color]"
+			}
+
+			# Start Zeromus server status
+			if {($zeromus == 3) || ($zeromus == 0)} {
+				set zeromus "[color 4]Down[color]"
+			} elseif {($zeromus == 2)} {
+				set zeromus "[color 7]Partially Down[color]"
+			} elseif {($zeromus == 1)} {
+				set zeromus "[color 3]Up[color]"
+			} else {
+				set zeromus "[color 4]Unknown[color]"
+			}
+
 			print $nick "\002Japan Server Status\002"
 			print $nick "Alexander: $alex - Anima: $anima - Atomos: $atomos - Bahamut: $baha - Carbuncle: $carby - Chocobo: $choco - Fenrir: $fenrir - Garuda: $garuda - Hades: $hell - Ifrit: $ifrit"
 			print $nick "Ixion: $ixy - Kujata: $kujata - Mandragora: $mandy - Ramuh: $ramuh - Tiamat: $tiamat - Titan: $titan - Tonberry: $tonberry - Typhon: $typhon - Ultima: $ultima - Valefor: $valefor - Pandemonium: $pandy"
+			print $nick "Asura: $asura - Belias: $belias - Unicorn: $unicorn - Yojimbo: $yojimbo - Zeromus: $zeromus"
 			return 0
 		}
 
@@ -596,6 +657,9 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set siren [dict get $value Siren]
 				set ultros [dict get $value Ultros]
 				set famfrit [dict get $value Famfrit]
+				set bryn [dict get $value Brynhildr]
+				set mateus [dict get $value Mateus]
+				set zalera [dict get $value Zalera]
 			}
 
 			# Start Adamantoise server status
@@ -774,9 +838,43 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				set famfrit "[color 4]Unknown[color]"
 			}
 
+			# Start Brynhildr server status
+			if {($bryn == 3) || ($bryn == 0)} {
+				set bryn "[color 4]Down[color]"
+			} elseif {($bryn == 2)} {
+				set bryn "[color 7]Partially Down[color]"
+			} elseif {($bryn == 1)} {
+				set bryn "[color 3]Up[color]"
+			} else {
+				set bryn "[color 4]Unknown[color]"
+			}
+
+			# Start Mateus server status
+			if {($mateus == 3) || ($mateus == 0)} {
+				set mateus "[color 4]Down[color]"
+			} elseif {($mateus == 2)} {
+				set mateus "[color 7]Partially Down[color]"
+			} elseif {($mateus == 1)} {
+				set mateus "[color 3]Up[color]"
+			} else {
+				set mateus "[color 4]Unknown[color]"
+			}
+
+			# Start Zalera server status
+			if {($zalera == 3) || ($zalera == 0)} {
+				set zalera "[color 4]Down[color]"
+			} elseif {($zalera == 2)} {
+				set zalera "[color 7]Partially Down[color]"
+			} elseif {($zalera == 1)} {
+				set zalera "[color 3]Up[color]"
+			} else {
+				set zalera "[color 4]Unknown[color]"
+			}
+
 			print $nick "\002North American Server Status\002"
 			print $nick "Adamantoise: $adaman - Behemoth: $behem - Cactuar: $cactuar - Coeurl: $coeurl - Diabolos: $diabolos - Exodus: $exodus - Faerie: $faerie - Gilgamesh: $gilg"
 			print $nick "Goblin: $goblin - Lamia: $lamia - Leviathan: $levy - Malboro: $malboro - Midgardsormr: $midg - Siren: $siren - Ultros: $ultros - Famfrit: $famfrit"
+			print $nick "Brynhildr: $bryn - Mateus: $mateus - Zalera: $zalera"
 			return 0
 		}
 
