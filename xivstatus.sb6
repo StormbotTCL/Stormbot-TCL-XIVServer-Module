@@ -2,10 +2,10 @@
 #
 # Author: Demonicpagan
 # Created: 8/19/2013
-# Last Updated: 1/02/2014
+# Last Updated: 1/03/2014
 #
 # Description: Poll the Lodestone for the current server status
-# For a visual check please visit the website I modled this after: http://arrstatus.com/
+# For a visual check please visit the website I modelled this after: http://arrstatus.com/
 # Change Log:
 # Please refer to http://github.com/demonicpagan/Stormbot-TCL-XIVServer-Module for changes made
 
@@ -40,7 +40,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 		printh $nick "\002\037XIV SERVER STATUS:\037\002"
 		printh $nick "Syntax: $::botnick XIVSTATUS <LOBBY|SERVER NAME> - Check the status of the lobby or server of interest"
 		printh $nick "Syntax: $::botnick XIVSTATUS <EUROPE|NALEGACY|JPLEGACY|EULEGACY|JAPAN|NA> - List the status of group of servers"
-		if {![string match -nocase *CYGWIN* $::tcl_platform(os)]} {
+		if {![string match -nocase *CYGWIN* $::tcl_platform(os)] || ![string match -nocase WINDOWS* $::tcl_platform(os)]} {
 			printh $nick "Syntax: $::botnick XIVSTATUS PING <SERVER NAME> - Get a ping response from the box this eggdrop is running on and the selected FFXIV server"
 		}
 		printh $nick ""
@@ -53,8 +53,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 	}
 
 	set result [xivstatus:getdata $frontier::current_status_url]
-	set server []
-	set status []
+	empty server status
 
 	foreach {i j} $result {
 		lappend server $i
@@ -68,14 +67,11 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 			set pos [lsearch -index 0 $server $req]
 			set info [lindex $status $pos]
 
-			if {($info == 3) || ($info == 0)} {
-				set msg "[color 4]Down[color]"
-			} elseif {($info == 2)} {
-				set msg "[color 7]Partially Down[color]"
-			} elseif {($info == 1)} {
-				set msg "[color 3]Up[color]"
-			} else {
-				set msg "[color 4]Unknown[color]"
+			switch -exact -- $info {
+				0 - 3 { set msg "[color 4]Down[color]" }
+				2 { set msg "[color 7]Partially Down[color]" }
+				1 { set msg "[color 3]Up[color]" }
+				default { set msg "[color 4]Unknown[color]" }
 			}
 
 			print $nick "The $req server is currently $msg"
@@ -83,7 +79,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 		}
 	}
 
-	switch -glob -- $l1 {
+	switch -exact -- $l1 {
 		test {
 			print $nick "\[${u0}\] Testing functions needed for $u0 to work:"
 			lassign [xivstatus:check_packages] ok bad
@@ -92,867 +88,15 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 			} {
 				print $nick "\[${u0}\] Missing packages: [ajl $bad] ($u0 can't function without them!)"
 			}
-			if [string match -nocase *CYGWIN* $::tcl_platform(os)] {
-				print $nick "[color 5]This eggdrop is running under a CYGWIN environment and thus the PING option will not be available to you.[color]"
+			if {[string match -nocase *CYGWIN* $::tcl_platform(os)] || [string match -nocase WINDOWS* $::tcl_platform(os)]} {
+				print $nick "[color 5]This eggdrop is running under a CYGWIN or WINDOWS environment and thus the PING option will not be available to you.[color]"
 			}
-			return 0
-		}
-
-		lobby {
-			if {[catch {xivstatus:getdata $frontier::gateway_status_url} result]} {
-				print $nick "Unable to retieve information - $result"
-				return 0
-			}
-
-			set lobby [dict get $result status]
-
-			if {($lobby == 3) || ($lobby == 0)} {
-				print $nick "The lobby is currently [color 4]down[color]. Please check back later."
-				return 0
-			} elseif {($lobby == 2)} {
-				print $nick "The lobby is currently [color 7]partially down[color]. You might be able to log in."
-				return 0
-			} elseif {($lobby == 1)} {
-				print $nick "The lobby is currently [color 3]up[color]. Log in and enjoy playing!"
-				return 0
-			} else {
-				print $nick "There is a server timeout issue... sorry."
-				return 0
-			}
-
-			return 0
-		}
-
-		europe - eu {
-			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
-				print $nick "Unable to retieve information - $result"
-				return 0
-			}
-
-			set server [list $result]
-			foreach value $server {
-				set cerb [dict get $value Cerberus]
-				set moogle [dict get $value Moogle]
-				set odin [dict get $value Odin]
-				set phoenix [dict get $value Phoenix]
-				set shiva [dict get $value Shiva]
-				set lich [dict get $value Lich]
-			}
-
-			# Start Cerberus server status - IP: 199.91.189.26
-			if {($cerb == 3) || ($cerb == 0)} {
-				set cerb "[color 4]Down[color]"
-			} elseif {($cerb == 2)} {
-				set cerb "[color 7]Partially Down[color]"
-			} elseif {($cerb == 1)} {
-				set cerb "[color 3]Up[color]"
-			} else {
-				set cerb "[color 4]Unknown[color]"
-			}
-
-			# Start Moogle server status - IP: 199.91.189.60
-			if {($moogle == 3) || ($moogle == 0)} {
-				set moogle "[color 4]Down[color]"
-			} elseif {($moogle == 2)} {
-				set moogle "[color 7]Partially Down[color]"
-			} elseif {($moogle == 1)} {
-				set moogle "[color 3]Up[color]"
-			} else {
-				set moogle "[color 4]Unknown[color]"
-			}
-
-			# Start Odin server status - IP: 199.91.189.30
-			if {($odin == 3) || ($odin == 0)} {
-				set odin "[color 4]Down[color]"
-			} elseif {($odin == 2)} {
-				set odin "[color 7]Partially Down[color]"
-			} elseif {($odin == 1)} {
-				set odin "[color 3]Up[color]"
-			} else {
-				set odin "[color 4]Unknown[color]"
-			}
-
-			# Start Phoenix server status - IP: 199.91.189.22
-			if {($phoenix == 3) || ($phoenix == 0)} {
-				set phoenix "[color 4]Down[color]"
-			} elseif {($phoenix == 2)} {
-				set phoenix "[color 7]Partially Down[color]"
-			} elseif {($phoenix == 1)} {
-				set phoenix "[color 3]Up[color]"
-			} else {
-				set phoenix "[color 4]Unknown[color]"
-			}
-
-			# Start Shiva server status - IP: 199.91.189.45
-			if {($shiva == 3) || ($shiva == 0)} {
-				set shiva "[color 4]Down[color]"
-			} elseif {($shiva == 2)} {
-				set shiva "[color 7]Partially Down[color]"
-			} elseif {($shiva == 1)} {
-				set shiva "[color 3]Up[color]"
-			} else {
-				set shiva "[color 4]Unknown[color]"
-			}
-
-			# Start Lich server status - IP: 199.91.189.42
-			if {($lich == 3) || ($lich == 0)} {
-				set lich "[color 4]Down[color]"
-			} elseif {($lich == 2)} {
-				set lich "[color 7]Partially Down[color]"
-			} elseif {($lich == 1)} {
-				set lich "[color 3]Up[color]"
-			} else {
-				set lich "[color 4]Unknown[color]"
-			}
-
-			print $nick "\002European Server Status\002"
-			print $nick "Cerberus: $cerb - Moogle: $moogle - Odin: $odin - Phoenix: $phoenix - Shiva: $shiva - Lich: $lich"
-
-			return 0
-		}
-
-		eulegacy - eul {
-			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
-				print $nick "Unable to retieve information - $result"
-				return 0
-			}
-
-			set server [list $result]
-			foreach value $server {
-				set rag [dict get $value Ragnarok]
-			}
-
-			# Start Ragnarok server status - IP: 199.91.189.60
-			if {($rag == 3) || ($rag == 0)} {
-				set rag "[color 4]Down[color]"
-			} elseif {($rag == 2)} {
-				set rag "[color 7]Partially Down[color]"
-			} elseif {($rag == 1)} {
-				set rag "[color 3]Up[color]"
-			} else {
-				set rag "[color 4]Unknown[color]"
-			}
-
-			print $nick "\002Legacy European Server Status\002"
-			print $nick "Ragnarok: $rag"
-			return 0
-		}
-
-		japan - jp {
-			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
-				print $nick "Unable to retieve information - $result"
-				return 0
-			}
-
-			set server [list $result]
-			foreach value $server {
-				set alex [dict get $value Alexander]
-				set anima [dict get $value Anima]
-				set atomos [dict get $value Atomos]
-				set asura [dict get $value Asura]
-				set baha [dict get $value Bahamut]
-				set belias [dict get $value Belias]
-				set carby [dict get $value Carbuncle]
-				set choco [dict get $value Chocobo]
-				set fenrir [dict get $value Fenrir]
-				set garuda [dict get $value Garuda]
-				set hell [dict get $value Hades]
-				set ifrit [dict get $value Ifrit]
-				set ixy [dict get $value Ixion]
-				set kujata [dict get $value Kujata]
-				set mandy [dict get $value Mandragora]
-				set ramuh [dict get $value Ramuh]
-				set tiamat [dict get $value Tiamat]
-				set titan [dict get $value Titan]
-				set tonberry [dict get $value Tonberry]
-				set typhon [dict get $value Typhon]
-				set ultima [dict get $value Ultima]
-				set unicorn [dict get $value Unicorn]
-				set valefor [dict get $value Valefor]
-				set pandy [dict get $value Pandaemonium]
-				set yojimbo [dict get $value Yojimbo]
-				set zeromus [dict get $value Zeromus]
-			}
-
-			# Start Alexander server status - IP: 124.150.157.47
-			if {($alex == 3) || ($alex == 0)} {
-				set alex "[color 4]Down[color]"
-			} elseif {($alex == 2)} {
-				set alex "[color 7]Partially Down[color]"
-			} elseif {($alex == 1)} {
-				set alex "[color 3]Up[color]"
-			} else {
-				set alex "[color 4]Unknown[color]"
-			}
-
-			# Start Anima server status - IP: 124.150.157.28
-			if {($anima == 3) || ($anima == 0)} {
-				set anima "[color 4]Down[color]"
-			} elseif {($anima == 2)} {
-				set anima "[color 7]Partially Down[color]"
-			} elseif {($anima == 1)} {
-				set anima "[color 3]Up[color]"
-			} else {
-				set anima "[color 4]Unknown[color]"
-			}
-
-			# Start Atomos server status - IP: 124.150.157.36
-			if {($atomos == 3) || ($atomos == 0)} {
-				set atomos "[color 4]Down[color]"
-			} elseif {($atomos == 2)} {
-				set atomos "[color 7]Partially Down[color]"
-			} elseif {($atomos == 1)} {
-				set atomos "[color 3]Up[color]"
-			} else {
-				set atomos "[color 4]Unknown[color]"
-			}
-
-			# Start Asura server status - IP: 124.150.157.29
-			if {($asura == 3) || ($asura == 0)} {
-				set asura "[color 4]Down[color]"
-			} elseif {($asura == 2)} {
-				set asura "[color 7]Partially Down[color]"
-			} elseif {($asura == 1)} {
-				set asura "[color 3]Up[color]"
-			} else {
-				set asura "[color 4]Unknown[color]"
-			}
-
-			# Start Bahamut server status - IP: 124.150.157.45
-			if {($baha == 3) || ($baha == 0)} {
-				set baha "[color 4]Down[color]"
-			} elseif {($baha == 2)} {
-				set baha "[color 7]Partially Down[color]"
-			} elseif {($baha == 1)} {
-				set baha "[color 3]Up[color]"
-			} else {
-				set baha "[color 4]Unknown[color]"
-			}
-
-			# Start Belias server status - IP: 124.150.157.54
-			if {($belias == 3) || ($belias == 0)} {
-				set belias "[color 4]Down[color]"
-			} elseif {($belias == 2)} {
-				set belias "[color 7]Partially Down[color]"
-			} elseif {($belias == 1)} {
-				set belias "[color 3]Up[color]"
-			} else {
-				set belias "[color 4]Unknown[color]"
-			}
-
-			# Start Carbuncle server status - IP: 124.150.157.33
-			if {($carby == 3) || ($carby == 0)} {
-				set carby "[color 4]Down[color]"
-			} elseif {($carby == 2)} {
-				set carby "[color 7]Partially Down[color]"
-			} elseif {($carby == 1)} {
-				set carby "[color 3]Up[color]"
-			} else {
-				set carby "[color 4]Unknown[color]"
-			}
-
-			# Start Chocobo server status - IP: 124.150.157.29
-			if {($choco == 3) || ($choco == 0)} {
-				set choco "[color 4]Down[color]"
-			} elseif {($choco == 2)} {
-				set choco "[color 7]Partially Down[color]"
-			} elseif {($choco == 1)} {
-				set choco "[color 3]Up[color]"
-			} else {
-				set choco "[color 4]Unknown[color]"
-			}
-
-			# Start Fenrir server status - IP: 124.150.157.47
-			if {($fenrir == 3) || ($fenrir == 0)} {
-				set fenrir "[color 4]Down[color]"
-			} elseif {($fenrir == 2)} {
-				set fenrir "[color 7]Partially Down[color]"
-			} elseif {($fenrir == 1)} {
-				set fenrir "[color 3]Up[color]"
-			} else {
-				set fenrir "[color 4]Unknown[color]"
-			}
-
-			# Start Garuda server status - IP: 124.150.157.25
-			if {($garuda == 3) || ($garuda == 0)} {
-				set garuda "[color 4]Down[color]"
-			} elseif {($garuda == 2)} {
-				set garuda "[color 7]Partially Down[color]"
-			} elseif {($garuda == 1)} {
-				set garuda "[color 3]Up[color]"
-			} else {
-				set garuda "[color 4]Unknown[color]"
-			}
-
-			# Start Hades server status - IP: 124.150.157.29
-			if {($hell == 3) || ($hell == 0)} {
-				set hell "[color 4]Down[color]"
-			} elseif {($hell == 2)} {
-				set hell "[color 7]Partially Down[color]"
-			} elseif {($hell == 1)} {
-				set hell "[color 3]Up[color]"
-			} else {
-				set hell "[color 4]Unknown[color]"
-			}
-
-			# Start Ifrit server status - IP: 124.150.157.46
-			if {($ifrit == 3) || ($ifrit == 0)} {
-				set ifrit "[color 4]Down[color]"
-			} elseif {($ifrit == 2)} {
-				set ifrit "[color 7]Partially Down[color]"
-			} elseif {($ifrit == 1)} {
-				set ifrit "[color 3]Up[color]"
-			} else {
-				set ifrit "[color 4]Unknown[color]"
-			}
-
-			# Start Ixion server status - IP: 124.150.157.57
-			if {($ixy == 3) || ($ixy == 0)} {
-				set ixy "[color 4]Down[color]"
-			} elseif {($ixy == 2)} {
-				set ixy "[color 7]Partially Down[color]"
-			} elseif {($ixy == 1)} {
-				set ixy "[color 3]Up[color]"
-			} else {
-				set ixy "[color 4]Unknown[color]"
-			}
-
-			# Start Kujata server status - IP: 124.150.157.31
-			if {($kujata == 3) || ($kujata == 0)} {
-				set kujata "[color 4]Down[color]"
-			} elseif {($kujata == 2)} {
-				set kujata "[color 7]Partially Down[color]"
-			} elseif {($kujata == 1)} {
-				set kujata "[color 3]Up[color]"
-			} else {
-				set kujata "[color 4]Unknown[color]"
-			}
-
-			# Start Mandragora server status - IP: 124.150.157.11
-			if {($mandy == 3) || ($mandy == 0)} {
-				set mandy "[color 4]Down[color]"
-			} elseif {($mandy == 2)} {
-				set mandy "[color 7]Partially Down[color]"
-			} elseif {($mandy == 1)} {
-				set mandy "[color 3]Up[color]"
-			} else {
-				set mandy "[color 4]Unknown[color]"
-			}
-
-			# Start Ramuh server status - IP: 124.150.157.35
-			if {($ramuh == 3) || ($ramuh == 0)} {
-				set ramuh "[color 4]Down[color]"
-			} elseif {($ramuh == 2)} {
-				set ramuh "[color 7]Partially Down[color]"
-			} elseif {($ramuh == 1)} {
-				set ramuh "[color 3]Up[color]"
-			} else {
-				set ramuh "[color 4]Unknown[color]"
-			}
-
-			# Start Tiamat server status - IP: 124.150.157.52
-			if {($tiamat == 3) || ($tiamat == 0)} {
-				set tiamat "[color 4]Down[color]"
-			} elseif {($tiamat == 2)} {
-				set tiamat "[color 7]Partially Down[color]"
-			} elseif {($tiamat == 1)} {
-				set tiamat "[color 3]Up[color]"
-			} else {
-				set tiamat "[color 4]Unknown[color]"
-			}
-
-			# Start Titan server status - IP: 124.150.157.58
-			if {($titan == 3) || ($titan == 0)} {
-				set titan "[color 4]Down[color]"
-			} elseif {($titan == 2)} {
-				set titan "[color 7]Partially Down[color]"
-			} elseif {($titan == 1)} {
-				set titan "[color 3]Up[color]"
-			} else {
-				set titan "[color 4]Unknown[color]"
-			}
-
-			# Start Tonberry server status - IP: 124.150.157.30
-			if {($tonberry == 3) || ($tonberry == 0)} {
-				set tonberry "[color 4]Down[color]"
-			} elseif {($tonberry == 2)} {
-				set tonberry "[color 7]Partially Down[color]"
-			} elseif {($tonberry == 1)} {
-				set tonberry "[color 3]Up[color]"
-			} else {
-				set tonberry "[color 4]Unknown[color]"
-			}
-
-			# Start Typhon server status - IP: 124.150.157.35
-			if {($typhon == 3) || ($typhon == 0)} {
-				set typhon "[color 4]Down[color]"
-			} elseif {($typhon == 2)} {
-				set typhon "[color 7]Partially Down[color]"
-			} elseif {($typhon == 1)} {
-				set typhon "[color 3]Up[color]"
-			} else {
-				set typhon "[color 4]Unknown[color]"
-			}
-
-			# Start Ultima server status - IP: 124.150.157.47
-			if {($ultima == 3) || ($ultima == 0)} {
-				set ultima "[color 4]Down[color]"
-			} elseif {($ultima == 2)} {
-				set ultima "[color 7]Partially Down[color]"
-			} elseif {($ultima == 1)} {
-				set ultima "[color 3]Up[color]"
-			} else {
-				set ultima "[color 4]Unknown[color]"
-			}
-
-			# Start Valefor server status - IP: 124.150.157.47
-			if {($valefor == 3) || ($valefor == 0)} {
-				set valefor "[color 4]Down[color]"
-			} elseif {($valefor == 2)} {
-				set valefor "[color 7]Partially Down[color]"
-			} elseif {($valefor == 1)} {
-				set valefor "[color 3]Up[color]"
-			} else {
-				set valefor "[color 4]Unknown[color]"
-			}
-
-			# Start Unicorn server status - IP: 124.150.157.32
-			if {($unicorn == 3) || ($unicorn == 0)} {
-				set unicorn "[color 4]Down[color]"
-			} elseif {($unicorn == 2)} {
-				set unicorn "[color 7]Partially Down[color]"
-			} elseif {($unicorn == 1)} {
-				set unicorn "[color 3]Up[color]"
-			} else {
-				set unicorn "[color 4]Unknown[color]"
-			}
-
-			# Start Pandaemonium server status - IP: 124.150.157.58
-			if {($pandy == 3) || ($pandy == 0)} {
-				set pandy "[color 4]Down[color]"
-			} elseif {($pandy == 2)} {
-				set pandy "[color 7]Partially Down[color]"
-			} elseif {($pandy == 1)} {
-				set pandy "[color 3]Up[color]"
-			} else {
-				set pandy "[color 4]Unknown[color]"
-			}
-
-			# Start Yojimbo server status - IP: 124.150.157.25
-			if {($yojimbo == 3) || ($yojimbo == 0)} {
-				set yojimbo "[color 4]Down[color]"
-			} elseif {($yojimbo == 2)} {
-				set yojimbo "[color 7]Partially Down[color]"
-			} elseif {($yojimbo == 1)} {
-				set yojimbo "[color 3]Up[color]"
-			} else {
-				set yojimbo "[color 4]Unknown[color]"
-			}
-
-			# Start Zeromus server status - IP: 124.150.157.43
-			if {($zeromus == 3) || ($zeromus == 0)} {
-				set zeromus "[color 4]Down[color]"
-			} elseif {($zeromus == 2)} {
-				set zeromus "[color 7]Partially Down[color]"
-			} elseif {($zeromus == 1)} {
-				set zeromus "[color 3]Up[color]"
-			} else {
-				set zeromus "[color 4]Unknown[color]"
-			}
-
-			print $nick "\002Japan Server Status\002"
-			print $nick "Alexander: $alex - Anima: $anima - Atomos: $atomos - Bahamut: $baha - Carbuncle: $carby - Chocobo: $choco - Fenrir: $fenrir - Garuda: $garuda - Hades: $hell - Ifrit: $ifrit"
-			print $nick "Ixion: $ixy - Kujata: $kujata - Mandragora: $mandy - Ramuh: $ramuh - Tiamat: $tiamat - Titan: $titan - Tonberry: $tonberry - Typhon: $typhon - Ultima: $ultima - Valefor: $valefor - Pandemonium: $pandy"
-			print $nick "Asura: $asura - Belias: $belias - Unicorn: $unicorn - Yojimbo: $yojimbo - Zeromus: $zeromus"
-			return 0
-		}
-
-		jplegacy - jpl {
-			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
-				print $nick "Unable to retieve information - $result"
-				return 0
-			}
-
-			set server [list $result]
-			foreach value $server {
-				set aegis [dict get $value Aegis]
-				set durandal [dict get $value Durandal]
-				set gungnir [dict get $value Gungnir]
-				set masa [dict get $value Masamune]
-				set rid [dict get $value Ridill]
-			}
-
-			# Start Aegis server status - IP: 124.150.157.35
-			if {($aegis == 3) || ($aegis == 0)} {
-				set aegis "[color 4]Down[color]"
-			} elseif {($aegis == 2)} {
-				set aegis "[color 7]Partially Down[color]"
-			} elseif {($aegis == 1)} {
-				set aegis "[color 3]Up[color]"
-			} else {
-				set aegis "[color 4]Unknown[color]"
-			}
-
-			# Start Durandal server status - IP: 124.150.157.50
-			if {($durandal == 3) || ($durandal == 0)} {
-				set durandal "[color 4]Down[color]"
-			} elseif {($durandal == 2)} {
-				set durandal "[color 7]Partially Down[color]"
-			} elseif {($durandal == 1)} {
-				set durandal "[color 3]Up[color]"
-			} else {
-				set durandal "[color 4]Unknown[color]"
-			}
-
-			# Start Gungnir server status - IP: 124.150.157.39
-			if {($gungnir == 3) || ($gungnir == 0)} {
-				set gungnir "[color 4]Down[color]"
-			} elseif {($gungnir == 2)} {
-				set gungnir "[color 7]Partially Down[color]"
-			} elseif {($gungnir == 1)} {
-				set gungnir "[color 3]Up[color]"
-			} else {
-				set gungnir "[color 4]Unknown[color]"
-			}
-
-			# Start Masamune server status - IP: 124.150.157.53
-			if {($masa == 3) || ($masa == 0)} {
-				set masa "[color 4]Down[color]"
-			} elseif {($masa == 2)} {
-				set masa "[color 7]Partially Down[color]"
-			} elseif {($masa == 1)} {
-				set masa "[color 3]Up[color]"
-			} else {
-				set masa "[color 4]Unknown[color]"
-			}
-
-			# Start Ridill server status - IP: 124.150.157.43
-			if {($rid == 3) || ($rid == 0)} {
-				set rid "[color 4]Down[color]"
-			} elseif {($rid == 2)} {
-				set rid "[color 7]Partially Down[color]"
-			} elseif {($rid == 1)} {
-				set rid "[color 3]Up[color]"
-			} else {
-				set rid "[color 4]Unknown[color]"
-			}
-
-			print $nick "\002Legacy Japan Server Status\002"
-			print $nick "Aegis: $aegis - Durandal: $durandal - Gungnir: $gungnir - Masamune: $masa - Ridill: $rid"
-			return 0
-		}
-
-		na {
-			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
-				print $nick "Unable to retieve information - $result"
-				return 0
-			}
-
-			set server [list $result]
-			foreach value $server {
-				set adaman [dict get $value Adamantoise]
-				set behem [dict get $value Behemoth]
-				set cactuar [dict get $value Cactuar]
-				set coeurl [dict get $value Coeurl]
-				set diabolos [dict get $value Diabolos]
-				set exodus [dict get $value Exodus]
-				set faerie [dict get $value Faerie]
-				set gilg [dict get $value Gilgamesh]
-				set goblin [dict get $value Goblin]
-				set lamia [dict get $value Lamia]
-				set levy [dict get $value Leviathan]
-				set malboro [dict get $value Malboro]
-				set midg [dict get $value Midgardsormr]
-				set siren [dict get $value Siren]
-				set ultros [dict get $value Ultros]
-				set famfrit [dict get $value Famfrit]
-				set bryn [dict get $value Brynhildr]
-				set mateus [dict get $value Mateus]
-				set zalera [dict get $value Zalera]
-			}
-
-			# Start Adamantoise server status - IP: 199.91.189.30
-			if {($adaman == 3) || ($adaman == 0)} {
-				set adaman "[color 4]Down[color]"
-			} elseif {($adaman == 2)} {
-				set adaman "[color 7]Partially Down[color]"
-			} elseif {($adaman == 1)} {
-				set adaman "[color 3]Up[color]"
-			} else {
-				set adaman "[color 4]Unknown[color]"
-			}
-
-			# Start Behemoth server status - IP: 199.91.189.40
-			if {($behem == 3) || ($behem == 0)} {
-				set behem "[color 4]Down[color]"
-			} elseif {($behem == 2)} {
-				set behem "[color 7]Partially Down[color]"
-			} elseif {($behem == 1)} {
-				set behem "[color 3]Up[color]"
-			} else {
-				set behem "[color 4]Unknown[color]"
-			}
-
-			# Start Cactuar server status - IP: 199.91.189.23
-			if {($cactuar == 3) || ($cactuar == 0)} {
-				set cactuar "[color 4]Down[color]"
-			} elseif {($cactuar == 2)} {
-				set cactuar "[color 7]Partially Down[color]"
-			} elseif {($cactuar == 1)} {
-				set cactuar "[color 3]Up[color]"
-			} else {
-				set cactuar "[color 4]Unknown[color]"
-			}
-
-			# Start Coeurl server status - IP: 199.91.189.27
-			if {($coeurl == 3) || ($coeurl == 0)} {
-				set coeurl "[color 4]Down[color]"
-			} elseif {($coeurl == 2)} {
-				set coeurl "[color 7]Partially Down[color]"
-			} elseif {($coeurl == 1)} {
-				set coeurl "[color 3]Up[color]"
-			} else {
-				set coeurl "[color 4]Unknown[color]"
-			}
-
-			# Start Diabolos server status - IP: 199.91.189.38
-			if {($diabolos == 3) || ($diabolos == 0)} {
-				set diabolos "[color 4]Down[color]"
-			} elseif {($diabolos == 2)} {
-				set diabolos "[color 7]Partially Down[color]"
-			} elseif {($diabolos == 1)} {
-				set diabolos "[color 3]Up[color]"
-			} else {
-				set diabolos "[color 4]Unknown[color]"
-			}
-
-			# Start Exodus server status - IP: 199.91.189.57
-			if {($exodus == 3) || ($exodus == 0)} {
-				set exodus "[color 4]Down[color]"
-			} elseif {($exodus == 2)} {
-				set exodus "[color 7]Partially Down[color]"
-			} elseif {($exodus == 1)} {
-				set exodus "[color 3]Up[color]"
-			} else {
-				set exodus "[color 4]Unknown[color]"
-			}
-
-			# Start Faerie server status - IP: 199.91.189.30
-			if {($faerie == 3) || ($faerie == 0)} {
-				set faerie "[color 4]Down[color]"
-			} elseif {($faerie == 2)} {
-				set faerie "[color 7]Partially Down[color]"
-			} elseif {($faerie == 1)} {
-				set faerie "[color 3]Up[color]"
-			} else {
-				set faerie "[color 4]Unknown[color]"
-			}
-
-			# Start Gilgamesh server status - IP: 199.91.189.57
-			if {($gilg == 3) || ($gilg == 0)} {
-				set gilg "[color 4]Down[color]"
-			} elseif {($gilg == 2)} {
-				set gilg "[color 7]Partially Down[color]"
-			} elseif {($gilg == 1)} {
-				set gilg "[color 3]Up[color]"
-			} else {
-				set gilg "[color 4]Unknown[color]"
-			}
-
-			# Start Goblin server status - IP: 199.91.189.26
-			if {($goblin == 3) || ($goblin == 0)} {
-				set goblin "[color 4]Down[color]"
-			} elseif {($goblin == 2)} {
-				set goblin "[color 7]Partially Down[color]"
-			} elseif {($goblin == 1)} {
-				set goblin "[color 3]Up[color]"
-			} else {
-				set goblin "[color 4]Unknown[color]"
-			}
-
-			# Start Lamia server status - IP: 199.91.189.40
-			if {($lamia == 3) || ($lamia == 0)} {
-				set lamia "[color 4]Down[color]"
-			} elseif {($lamia == 2)} {
-				set lamia "[color 7]Partially Down[color]"
-			} elseif {($lamia == 1)} {
-				set lamia "[color 3]Up[color]"
-			} else {
-				set lamia "[color 4]Unknown[color]"
-			}
-
-			# Start Leviathan server status - IP: 199.91.189.42
-			if {($levy == 3) || ($levy == 0)} {
-				set levy "[color 4]Down[color]"
-			} elseif {($levy == 2)} {
-				set levy "[color 7]Partially Down[color]"
-			} elseif {($levy == 1)} {
-				set levy "[color 3]Up[color]"
-			} else {
-				set levy "[color 4]Unknown[color]"
-			}
-
-			# Start Malboro server status - IP: 199.91.189.24
-			if {($malboro == 3) || ($malboro == 0)} {
-				set malboro "[color 4]Down[color]"
-			} elseif {($malboro == 2)} {
-				set malboro "[color 7]Partially Down[color]"
-			} elseif {($malboro == 1)} {
-				set malboro "[color 3]Up[color]"
-			} else {
-				set malboro "[color 4]Unknown[color]"
-			}
-
-			# Start Midgardsormr server status - IP: 199.91.189.28
-			if {($midg == 3) || ($midg == 0)} {
-				set midg "[color 4]Down[color]"
-			} elseif {($midg == 2)} {
-				set midg "[color 7]Partially Down[color]"
-			} elseif {($midg == 1)} {
-				set midg "[color 3]Up[color]"
-			} else {
-				set midg "[color 4]Unknown[color]"
-			}
-
-			# Start Siren server status - IP: 199.91.189.29
-			if {($siren == 3) || ($siren == 0)} {
-				set siren "[color 4]Down[color]"
-			} elseif {($siren == 2)} {
-				set siren "[color 7]Partially Down[color]"
-			} elseif {($siren == 1)} {
-				set siren "[color 3]Up[color]"
-			} else {
-				set siren "[color 4]Unknown[color]"
-			}
-
-			# Start Ultros server status - IP: 199.91.189.36
-			if {($ultros == 3) || ($ultros == 0)} {
-				set ultros "[color 4]Down[color]"
-			} elseif {($ultros == 2)} {
-				set ultros "[color 7]Partially Down[color]"
-			} elseif {($ultros == 1)} {
-				set ultros "[color 3]Up[color]"
-			} else {
-				set ultros "[color 4]Unknown[color]"
-			}
-
-			# Start Famfrit server status - IP: 199.91.189.39
-			if {($famfrit == 3) || ($famfrit == 0)} {
-				set famfrit "[color 4]Down[color]"
-			} elseif {($famfrit == 2)} {
-				set famfrit "[color 7]Partially Down[color]"
-			} elseif {($famfrit == 1)} {
-				set famfrit "[color 3]Up[color]"
-			} else {
-				set famfrit "[color 4]Unknown[color]"
-			}
-
-			# Start Brynhildr server status - IP: 199.91.189.46
-			if {($bryn == 3) || ($bryn == 0)} {
-				set bryn "[color 4]Down[color]"
-			} elseif {($bryn == 2)} {
-				set bryn "[color 7]Partially Down[color]"
-			} elseif {($bryn == 1)} {
-				set bryn "[color 3]Up[color]"
-			} else {
-				set bryn "[color 4]Unknown[color]"
-			}
-
-			# Start Mateus server status - IP: 199.91.189.22
-			if {($mateus == 3) || ($mateus == 0)} {
-				set mateus "[color 4]Down[color]"
-			} elseif {($mateus == 2)} {
-				set mateus "[color 7]Partially Down[color]"
-			} elseif {($mateus == 1)} {
-				set mateus "[color 3]Up[color]"
-			} else {
-				set mateus "[color 4]Unknown[color]"
-			}
-
-			# Start Zalera server status - IP: 199.91.189.57
-			if {($zalera == 3) || ($zalera == 0)} {
-				set zalera "[color 4]Down[color]"
-			} elseif {($zalera == 2)} {
-				set zalera "[color 7]Partially Down[color]"
-			} elseif {($zalera == 1)} {
-				set zalera "[color 3]Up[color]"
-			} else {
-				set zalera "[color 4]Unknown[color]"
-			}
-
-			print $nick "\002North American Server Status\002"
-			print $nick "Adamantoise: $adaman - Behemoth: $behem - Cactuar: $cactuar - Coeurl: $coeurl - Diabolos: $diabolos - Exodus: $exodus - Faerie: $faerie - Gilgamesh: $gilg"
-			print $nick "Goblin: $goblin - Lamia: $lamia - Leviathan: $levy - Malboro: $malboro - Midgardsormr: $midg - Siren: $siren - Ultros: $ultros - Famfrit: $famfrit"
-			print $nick "Brynhildr: $bryn - Mateus: $mateus - Zalera: $zalera"
-			return 0
-		}
-
-		nalegacy - nal {
-			if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
-				print $nick "Unable to retieve information - $result"
-				return 0
-			}
-
-			set server [list $result]
-			foreach value $server {
-				set balmung [dict get $value Balmung]
-				set excal [dict get $value Excalibur]
-				set hyper [dict get $value Hyperion]
-				set sarg [dict get $value Sargatanas]
-			}
-
-			# Start Balmung server status - IP: 199.91.189.30
-			if {($balmung == 3) || ($balmung == 0)} {
-				set balmung "[color 4]Down[color]"
-			} elseif {($balmung == 2)} {
-				set balmung "[color 7]Partially Down[color]"
-			} elseif {($balmung == 1)} {
-				set balmung "[color 3]Up[color]"
-			} else {
-				set balmung "[color 4]Unknown[color]"
-			}
-
-			# Start Excalibur server status - IP: 199.91.189.38
-			if {($excal == 3) || ($excal == 0)} {
-				set excal "[color 4]Down[color]"
-			} elseif {($excal == 2)} {
-				set excal "[color 7]Partially Down[color]"
-			} elseif {($excal == 1)} {
-				set excal "[color 3]Up[color]"
-			} else {
-				set excal "[color 4]Unknown[color]"
-			}
-
-			# Start Hyperion server status - IP: 199.91.189.57
-			if {($hyper == 3) || ($hyper == 0)} {
-				set hyper "[color 4]Down[color]"
-			} elseif {($hyper == 2)} {
-				set hyper "[color 7]Partially Down[color]"
-			} elseif {($hyper == 1)} {
-				set hyper "[color 3]Up[color]"
-			} else {
-				set hyper "[color 4]Unknown[color]"
-			}
-
-			# Start Sargatanas server status - IP: 199.91.189.33
-			if {($sarg == 3) || ($sarg == 0)} {
-				set sarg "[color 4]Down[color]"
-			} elseif {($sarg == 2)} {
-				set sarg "[color 7]Partially Down[color]"
-			} elseif {($sarg == 1)} {
-				set sarg "[color 3]Up[color]"
-			} else {
-				set sarg "[color 4]Unknown[color]"
-			}
-
-			print $nick "\002Legacy North American Server Status\002"
-			print $nick "Balmung: $balmung - Excalibur: $excal - Hyperion: $hyper - Sargatanas: $sarg"
 			return 0
 		}
 
 		ping {
-			if {[string match -nocase *CYGWIN* $::tcl_platform(os)]} {
-				print $nick "This command is unavailable to you since you are running your eggdrop under a CYGWIN environment."
+			if {[string match -nocase *CYGWIN* $::tcl_platform(os)] || [string match -nocase WINDOWS* $::tcl_platform(os)]} {
+				print $nick "This command is unavailable to you since you are running your eggdrop under a CYGWIN or WINDOWS environment."
 				return 0
 			} else {
 				if {[catch {xivstatus:getdata $frontier::server_address_url} result]} {
@@ -960,8 +104,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 					return 0
 				}
 
-				set server []
-				set ips []
+				empty server ips
 
 				foreach {i j} $result {
 					lappend server $i
@@ -985,9 +128,64 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 				print $nick "$req has returned a PING result of $result"
 			}
 
-			return 0;
+			return 0
+		}
+
+		lobby {
+			if {[catch {xivstatus:getdata $frontier::gateway_status_url} result]} {
+				print $nick "Unable to retieve information - $result"
+				return 0
+			}
+
+			set lobby [dict get $result status]
+			switch -exact -- $lobby {
+				0 - 3 { print $nick "The lobby is currently [color 4]down[color]. Please check back later."; return 0}
+				2 { print $nick "The lobby is currently [color 7]partially down[color]. You might be able to log in."; return 0}
+				1 { print $nick "The lobby is currently [color 3]up[color]. Log in and enjoy playing!"; return 0}
+			}
+
+			return 0
 		}
 	}
+
+	# Default fall-through: server status checks
+	switch -exact -- $l1 {
+		lobby { set list [list status] }
+		eu - europe { set list [list Cerberus Moogle Odin Phoenix Shiva Lich] }
+		eul - eulegacy - europelegacy { set list [list Ragnarok] }
+		jp - japan { set list [list Alexander Anima Atomos Asura Bahamut Belias Carbuncle Chocobo Fenrir Garuda Hades Ifrit Ixion Kujata Mandragora Ramuh Tiamat Titan Tonberry Typhon Ultima Unicorn Valefor Pandaemonium Yojimbo Zeromus] }
+		jpl - jalegacy - japanlegacy { set list [list Aegis Durandal Gungnir Masamune Ridill] }
+		na  { set list [list Adamantoise Behemoth Cactuar Coeurl Diabolos Exodus Faerie Gilgamesh Goblin Lamia Leviathan Malboro Midgardsormr Siren Ultros Famfrit Brynhildr Mateus Zalera] }
+		nal - nalegacy { set list [list Balmung Excalibur Hyperion Sargatanas] }
+		default { printh $nick "\[${u0}\] Unknown server group: $u1" ; return 0 }
+	}
+
+	if {[catch {xivstatus:getdata $frontier::current_status_url} result]} {
+		print $nick "Unable to retieve information - $result"
+		return 0
+	}
+
+	empty final
+	set server [list $result]
+	foreach value $server {
+		foreach esper $list {
+			set serv_status [dict get $value $esper]
+
+			switch -exact -- $serv_status {
+				0 - 3 { set text "[color 4]Down[color]" }
+				2 { set text "[color 7]Partially Down[color]" }
+				1 { set text "[color 3]Up[color]" }
+				default { set text "[color 4]Unknown[color]" }
+			}
+			lappend final "$esper (${text})"
+		}
+	}
+	print $nick "\002$u1 Server Status\002"
+	array set final_status [list]
+	foreach b $final { lassign $b c d; set d [mid $d 2 -1]; lappend final_status($d) $c }
+	foreach e [array names final_status] { print $nick "[stu $e]: [ajl $final_status($e)]" }
+	return 0
+
 }
 
 proc xivstatus:getdata {url} {

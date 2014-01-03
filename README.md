@@ -16,6 +16,10 @@ You can always get the latest source from <http://github.com/demonicpagan/Stormb
 
 Changelog - Dates are in Epoch time
 -----------------------------------
+1388741772:
+
+*	Fixed an error where checking the status of the lobby server was using the wrong URL to retrieve status information.
+
 1388733684:
 
 *	With the help of Ami-Chan, compacted code to make easier to debug and possibly expand on at a later date
