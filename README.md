@@ -16,6 +16,15 @@ You can always get the latest source from <http://github.com/demonicpagan/Stormb
 
 Changelog - Dates are in Epoch time
 -----------------------------------
+1388733684:
+
+*	With the help of Ami-Chan, compacted code to make easier to debug and possibly expand on at a later date
+
+1388729246:
+
+*	Updated bead to include PING results.
+*	Made note that if a user is running in a CYGWIN or WINDOWS environment that the PING option is unavailable.
+
 1377224028:
 
 *	Created a README for GitHub and brought this repository online.
