@@ -115,7 +115,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 					set req [sts $2]
 
 					if [string eq -nocase $req $2] {
-						set pos [lsearch -index 0 $server $req]
+						set pos [lsearch -index 0 -nocase $server $req]
 						set ip [lindex $ips $pos]
 
 						if {[catch {xivstatus:ping_check $ip} result]} {
@@ -125,7 +125,21 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 					}
 				}
 
-				print $nick "$req has returned a PING result of $result"
+				switch -glob -- $2 {
+					na - NA {
+						print $nick "The NA Lobby server returned a PING result of $result"
+						return 0
+					}
+
+					jp - JP {
+						print $nick "The JP Lobby server returned a PING result of $result"
+						return 0
+					}
+
+					default {
+						print $nick "$req has returned a PING result of $result"
+					}
+				}
 			}
 
 			return 0
@@ -151,12 +165,21 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 	# Default fall-through: server status checks
 	switch -exact -- $l1 {
 		lobby { set list [list status] }
-		eu - europe { set list [list Cerberus Moogle Odin Phoenix Shiva Lich] }
+
+		elemental { set list [list Aegis Atomos Carbuncle Garuda Gungnir Kujata Ramuh Tonberry Typhon Unicorn] }
+		gaia { set list [list Alexander Bahamut Durandal Fenrir Ifrit Ridill Tiamat Ultima Valefor Yojimbo Zeromus] }
+		mana { set list [list Anima Asura Belias Chocobo Hades Ixion Mandragora Masamune Pandaemonium Shinryu Titan] }
+		aether { set list [list Adamantoise Balmung Cactuar Coeurl Faerie Gilgamesh Goblin Jenova Mateus Midgardsormr Sargatanas Siren Zalera] }
+		primal { set list [list Behemoth Brynhildr Diabolos Excalibur Exodus Famfrit Hyperion Lamia Leviathan Malboro Ultros] }
+		choas { set list [list Cerberus Lich Moogle Odin Phoenix Ragnarok Shiva Zodiark] }
+
+		eu - europe { set list [list Cerberus Moogle Odin Phoenix Shiva Lich Zodiark] }
 		eul - eulegacy - europelegacy { set list [list Ragnarok] }
-		jp - japan { set list [list Alexander Anima Atomos Asura Bahamut Belias Carbuncle Chocobo Fenrir Garuda Hades Ifrit Ixion Kujata Mandragora Ramuh Tiamat Titan Tonberry Typhon Ultima Unicorn Valefor Pandaemonium Yojimbo Zeromus] }
+		jp - japan { set list [list Alexander Anima Atomos Asura Bahamut Belias Carbuncle Chocobo Fenrir Garuda Hades Ifrit Ixion Kujata Mandragora Ramuh Tiamat Titan Tonberry Typhon Ultima Unicorn Valefor Pandaemonium Yojimbo Zeromus Shinryu] }
 		jpl - jalegacy - japanlegacy { set list [list Aegis Durandal Gungnir Masamune Ridill] }
-		na  { set list [list Adamantoise Behemoth Cactuar Coeurl Diabolos Exodus Faerie Gilgamesh Goblin Lamia Leviathan Malboro Midgardsormr Siren Ultros Famfrit Brynhildr Mateus Zalera] }
+		na  { set list [list Adamantoise Behemoth Cactuar Coeurl Diabolos Exodus Faerie Gilgamesh Goblin Lamia Leviathan Malboro Midgardsormr Siren Ultros Famfrit Brynhildr Mateus Zalera Jenova] }
 		nal - nalegacy { set list [list Balmung Excalibur Hyperion Sargatanas] }
+
 		default { printh $nick "\[${u0}\] Unknown server group: $u1" ; return 0 }
 	}
 

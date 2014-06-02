@@ -16,6 +16,12 @@ You can always get the latest source from <http://github.com/demonicpagan/Stormb
 
 Changelog - Dates are in Epoch time
 -----------------------------------
+1401699089:
+
+*	Able to check server status by using data center names (i.e., elemental, gaia, mana, aether, primal, chaos).
+*	Added the three new servers: Zodiark, Jenova, Shinryu.
+*	Able to check ping results from the NA Lobby server and the JP Lobby server.
+
 1388741772:
 
 *	Fixed an error where checking the status of the lobby server was using the wrong URL to retrieve status information.
