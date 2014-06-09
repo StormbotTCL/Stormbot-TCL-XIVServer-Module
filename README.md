@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Final Fantasy XIV Server Status for Stormbot 6 - TCL
 =====================================================
 Developer: Dustin Lennon<br />
@@ -39,9 +38,3 @@ Changelog - Dates are in Epoch time
 1377224028:
 
 *	Created a README for GitHub and brought this repository online.
-=======
-Stormbot-TCL-XIVServer-Module
-=============================
-
-Poll the Lodestone for the current server status
->>>>>>> 9ae8c751bc443a87212589083909baea8a30bb87
