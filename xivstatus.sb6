@@ -171,7 +171,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 		mana { set list [list Anima Asura Belias Chocobo Hades Ixion Mandragora Masamune Pandaemonium Shinryu Titan] }
 		aether { set list [list Adamantoise Balmung Cactuar Coeurl Faerie Gilgamesh Goblin Jenova Mateus Midgardsormr Sargatanas Siren Zalera] }
 		primal { set list [list Behemoth Brynhildr Diabolos Excalibur Exodus Famfrit Hyperion Lamia Leviathan Malboro Ultros] }
-		choas { set list [list Cerberus Lich Moogle Odin Phoenix Ragnarok Shiva Zodiark] }
+		chaos { set list [list Cerberus Lich Moogle Odin Phoenix Ragnarok Shiva Zodiark] }
 
 		eu - europe { set list [list Cerberus Moogle Odin Phoenix Shiva Lich Zodiark] }
 		eul - eulegacy - europelegacy { set list [list Ragnarok] }
