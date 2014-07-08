@@ -40,6 +40,7 @@ proc SB:proc_xivstatus {nick host handle chan arg} {
 		printh $nick "\002\037XIV SERVER STATUS:\037\002"
 		printh $nick "Syntax: $::botnick XIVSTATUS <LOBBY|SERVER NAME> - Check the status of the lobby or server of interest"
 		printh $nick "Syntax: $::botnick XIVSTATUS <EUROPE|NALEGACY|JPLEGACY|EULEGACY|JAPAN|NA> - List the status of group of servers"
+        printh $nick "Syntax: $::botnick XIVSTATUS <ELEMENTAL|GAIA|MANA|AETHER|PRIMAL|CHAOS> - List the status of group of servers based on datacenter location"
 		if {![string match -nocase *CYGWIN* $::tcl_platform(os)] || ![string match -nocase WINDOWS* $::tcl_platform(os)]} {
 			printh $nick "Syntax: $::botnick XIVSTATUS PING <SERVER NAME> - Get a ping response from the box this eggdrop is running on and the selected FFXIV server"
 		}

@@ -16,6 +16,10 @@ You can always get the latest source from <http://github.com/demonicpagan/Stormb
 
 Changelog - Dates are in Epoch time
 -----------------------------------
+1404789765:
+
+*   Added to the help the datacenter location names to get server status.
+
 1401699089:
 
 *	Able to check server status by using data center names (i.e., elemental, gaia, mana, aether, primal, chaos).
